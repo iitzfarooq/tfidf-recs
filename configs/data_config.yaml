@@ -1,0 +1,16 @@
+loader:
+  type: csv
+  filepath: "data/raw/movies.csv"
+  columns: 
+    - movieId
+    - title
+    - genres
+
+transformers:
+  - type: YearExtractor
+  - type: GenreExpander
+  - type: TextProcessor
+    params:
+      method: lemmatization
+
+output_path: "data/processed/movies_processed.parquet"
