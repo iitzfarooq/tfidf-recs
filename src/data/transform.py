@@ -44,6 +44,8 @@ class GenreExpander(BaseTransformer):
         
         df['genres_list'] = df['genres'].apply(lambda x: x.split('|') if isinstance(x, str) else [])
 
+        return df
+
 class TextProcessor(BaseTransformer):
     def __init__(self, method: str = 'lemmatization'):
         self.lemmatizer = WordNetLemmatizer()
@@ -52,6 +54,17 @@ class TextProcessor(BaseTransformer):
         
         self.method = method
         self.method_prc = self.lemmatizer if method == 'lemmatization' else self.stemmer
+    
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        
+        df['combined_text'] = (
+            df['title'].fillna('') + ' ' + 
+            df['genres_list'].apply(self.join_tokens)
+        )
+        
+        df['combined_text'] = df['combined_text'].apply(self.pipeline)
+        return df
 
     def clean_text(self, text: str) -> str:
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
@@ -82,17 +95,6 @@ class TextProcessor(BaseTransformer):
         tokens = self.remove_stopwords(tokens)
         tokens = self.apply_method(tokens)
         return ' '.join(tokens)
-    
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.copy()
-        
-        df['combined_text'] = (
-            df['title'].fillna('') + ' ' + 
-            df['genres_list'].apply(self.join_tokens)
-        )
-        
-        df['combined_text'] = df['combined_text'].apply(self.pipeline)
-        return df
     
 # Factory method to create transformers based on config
 def get_transformer(transformer_type: str, **kwargs) -> BaseTransformer:
