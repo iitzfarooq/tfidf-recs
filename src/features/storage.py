@@ -47,6 +47,8 @@ class FeatureStorage:
         with open(metadata_path, 'w') as f: 
             json.dump(metadata, f, indent=4)
 
+        self.update_latest_pointer(timestamp)
+
     def update_latest_pointer(self, timestamp: str) -> None:
         pointer_data = {'latest_timestamp': timestamp}
         with open(self.latest_pointer, 'w') as f:

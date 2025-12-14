@@ -2,7 +2,9 @@ import sys
 import os
 
 # Add project root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+if __name__ == "__main__":
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pandas as pd
 from typing import List, Optional, Dict, Any
@@ -66,7 +68,7 @@ def create_pipeline(
         output_path=output_path
     )
 
-if __name__ == "__main__":
+def run_data_pipeline():
     # Load configuration
     config_loader = ConfigLoader()
     config_loader.load_all()
@@ -86,3 +88,6 @@ if __name__ == "__main__":
         print("Validation passed.")
     else:
         print("Validation failed.")
+
+if __name__ == "__main__":
+    run_data_pipeline()
