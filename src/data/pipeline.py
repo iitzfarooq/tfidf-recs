@@ -1,5 +1,6 @@
 import sys
 import os
+
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -8,17 +9,19 @@ from typing import List, Optional, Dict, Any
 from src.data.transform import BaseTransformer, get_transformer
 from src.data.loaders import BaseLoader, CSVLoader
 from src.utils.config_loader import ConfigLoader
+from pathlib import Path
 
 class DataProcessingPipeline:
     def __init__(
         self, 
         loader: BaseLoader,
         transformers: List[BaseTransformer],
-        output_path: Optional[str] = None
+        output_path: str = 'data/processed/movies_processed.parquet'
     ):
         self.loader = loader
         self.transformers = transformers
-        self.output_path = output_path
+        self.output_path = Path(output_path)
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
     def run(self) -> pd.DataFrame:
         """Load data, apply transformations, and optionally save the result."""
@@ -45,7 +48,6 @@ def create_pipeline(
     # Initialize loader
     loader_type = loader_config.get("type")
     if loader_type == "csv":
-        # Pass the entire loader_config because filepath is at the top level
         loader = CSVLoader(loader_config)
     else:
         raise ValueError(f"Unsupported loader type: {loader_type}")
