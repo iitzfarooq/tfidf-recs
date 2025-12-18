@@ -58,7 +58,8 @@ class TfidfVectorizer(Vectorizer):
             'ngram_range': tuple(kwargs.get('ngram_range', (1, 2))),
             'min_df': kwargs.get('min_df', 2),
             'max_df': kwargs.get('max_df', 0.7),
-            'sublinear_tf': kwargs.get('sublinear_tf', True)
+            'sublinear_tf': kwargs.get('sublinear_tf', True),
+            'norm': kwargs.get('norm', 'l2'),
         }
 
         super().__init__(**params)
