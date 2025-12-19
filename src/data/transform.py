@@ -59,8 +59,9 @@ class TextProcessor(BaseTransformer):
         df = df.copy()
         
         df['combined_text'] = (
-            df['title'].fillna('') + ' ' + 
-            df['genres_list'].apply(self.join_tokens)
+            df['clean_title'].fillna('') + ' ' + 
+            df['genres_list'].apply(self.join_tokens) + ' ' + 
+            df['year'].fillna('').astype(str)
         )
         
         df['combined_text'] = df['combined_text'].apply(self.pipeline)

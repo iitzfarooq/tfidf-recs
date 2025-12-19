@@ -53,10 +53,10 @@ class TfidfVectorizer(Vectorizer):
         """
 
         params = {
-            'max_features': kwargs.get('max_features', 5000),
+            'max_features': kwargs.get('max_features', None),
             'stop_words': kwargs.get('stop_words', None),
             'ngram_range': tuple(kwargs.get('ngram_range', (1, 2))),
-            'min_df': kwargs.get('min_df', 2),
+            'min_df': kwargs.get('min_df', 1),
             'max_df': kwargs.get('max_df', 0.7),
             'sublinear_tf': kwargs.get('sublinear_tf', True),
             'norm': kwargs.get('norm', 'l2'),

@@ -11,10 +11,10 @@ steps:
   vectorizer:
     type: "tfidf"
     params:
-      max_features: 5000
+      max_features: null
       stop_words: "english"
       ngram_range: [1, 2]
-      min_df: 0.002
+      min_df: 1
       max_df: 0.7
       sublinear_tf: true
 
