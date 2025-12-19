@@ -42,16 +42,25 @@ class ArtifactVersion:
 
 
 class VersionContext:
-    def __init__(self, registry: "ArtifactsRegistry", mode: str = "load"):
+    def __init__(
+        self,
+        registry: "ArtifactsRegistry",
+        mode: str = "load",
+        version_id: Optional[str] = None,
+    ):
         self.registry = registry
         self.mode = mode
+        self.version_id = version_id
         self.previous_version = registry.active_version
 
     def __enter__(self):
         if self.mode == "create":
             self.registry.create_version()
         elif self.mode == "load":
-            self.registry.load_latest()
+            if self.version_id:
+                self.registry.load_version(self.version_id)
+            else:
+                self.registry.load_latest()
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
         return self.registry
@@ -100,8 +109,19 @@ class ArtifactsRegistry:
     - get_artifact(artifact_type, artifact_name)
     - commit()
 
-    Usage:
-    with registry(mode='create') as reg:
+    Context Manager Usage:
+        # Load latest version
+        with registry(mode='load') as reg:
+            data = reg.get_artifact('feature_matrix', 'features')
+
+        # Load specific version
+        with registry(mode='load', version_id='v1.20251219_090849') as reg:
+            data = reg.get_artifact('feature_matrix', 'features')
+
+        # Create new version
+        with registry(mode='create') as reg:
+            reg.register_artifact('feature_matrix', 'features', data)
+            # automatically committed on exit
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -404,5 +424,27 @@ class ArtifactsRegistry:
 
         save_json(metadata, metadata_file)
 
-    def __call__(self, mode: str = "load") -> VersionContext:
-        return VersionContext(self, mode)
+    def __call__(
+        self, mode: str = "load", version_id: Optional[str] = None
+    ) -> VersionContext:
+        """
+        Context manager for version operations.
+
+        Args:
+            mode: 'create' for new version, 'load' for existing version
+            version_id: Optional specific version to load (only used with mode='load')
+
+        Usage:
+            # Load latest version
+            with registry(mode='load') as reg:
+                ...
+
+            # Load specific version
+            with registry(mode='load', version_id='v1.20251219_090849') as reg:
+                ...
+
+            # Create new version
+            with registry(mode='create') as reg:
+                ...
+        """
+        return VersionContext(self, mode, version_id)
