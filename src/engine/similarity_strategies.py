@@ -18,3 +18,13 @@ class CosineSimilarityStrategy(SimilarityStrategy):
     ) -> np.ndarray:
         """Compute pairwise cosine similarity scores between two sets of features."""
         return cosine_similarity(features_A, features_B)
+
+
+def create_similarity_strategy(strategy_name: str = 'cosine') -> SimilarityStrategy:
+    """
+    Factory function to create similarity strategies.
+    """
+    if strategy_name.lower() == 'cosine':
+        return CosineSimilarityStrategy()
+    else:
+        raise ValueError(f"Unknown similarity strategy: {strategy_name}")
