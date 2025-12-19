@@ -4,7 +4,7 @@ Features module - Core vectorization logic.
 For feature generation workflows, use the orchestration module.
 """
 
-from features.vectorizer import (
+from .vectorizer import (
     Vectorizer,
     TfidfVectorizer,
     create_vectorizer

@@ -3,7 +3,7 @@
 
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from engine.interfaces import SimilarityStrategy
+from .interfaces import SimilarityStrategy
 
 
 class CosineSimilarityStrategy(SimilarityStrategy):

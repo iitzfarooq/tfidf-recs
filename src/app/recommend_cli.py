@@ -9,15 +9,12 @@ from pathlib import Path
 import pandas as pd
 from typing import Optional, Tuple, List, Dict, Any
 
-# Add project root and src to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
-sys.path.insert(0, str(PROJECT_ROOT))
 
-from utils.artifacts_registry import ArtifactsRegistry
-from utils.config_loader import ConfigLoader
-from engine.recommender import ContentBasedRecommender
-from engine.similarity_strategies import create_similarity_strategy
+from src.utils.artifacts_registry import ArtifactsRegistry
+from src.utils.config_loader import ConfigLoader
+from src.engine.recommender import ContentBasedRecommender
+from src.engine.similarity_strategies import create_similarity_strategy
 
 # --- Helpers ---
 
@@ -72,7 +69,7 @@ def load_recommender_system(
     except FileNotFoundError:
         click.echo(click.style("✗ Error: No recommendation model found", fg="red"))
         click.echo("\nPlease run the pipeline first:")
-        click.echo("  python src/orchestration/cli.py run --input data/raw/movies.csv")
+        click.echo("  python -m src.orchestration.cli run --input data/raw/movies.csv")
         sys.exit(1)
 
 

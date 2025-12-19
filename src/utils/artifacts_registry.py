@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 import re
-from utils.load_save import *
+from .load_save import *
 
 
 @dataclass

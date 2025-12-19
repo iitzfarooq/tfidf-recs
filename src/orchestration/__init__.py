@@ -2,8 +2,8 @@
 Orchestration module for managing ML pipelines with versioned artifacts.
 """
 
-from orchestration.orchestrator import Orchestrator
-from orchestration.steps import (
+from .orchestrator import Orchestrator
+from .steps import (
     OrchestrationStep,
     LoadDataStep,
     FitVectorizerStep,

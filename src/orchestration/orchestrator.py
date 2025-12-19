@@ -4,11 +4,9 @@ Manages execution of steps and artifact versioning.
 """
 
 from typing import List, Dict, Any, Optional
-from pathlib import Path
-
-from utils.artifacts_registry import ArtifactsRegistry
-from utils.config_loader import ConfigLoader
-from orchestration.steps import OrchestrationStep
+from src.utils.artifacts_registry import ArtifactsRegistry
+from src.utils.config_loader import ConfigLoader
+from .steps import OrchestrationStep
 
 
 class Orchestrator:
@@ -143,7 +141,7 @@ def create_orchestrator(
     Returns:
         Configured Orchestrator instance
     """
-    from orchestration.steps import (
+    from .steps import (
         LoadDataStep,
         FitVectorizerStep,
         GenerateFeaturesStep,

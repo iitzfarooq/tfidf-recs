@@ -1,11 +1,3 @@
-import sys
-import os
-
-# Add project root to path
-if __name__ == "__main__":
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pandas as pd
 from typing import List, Optional, Dict, Any
 from src.data.transform import BaseTransformer, get_transformer

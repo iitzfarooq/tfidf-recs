@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Dict
-from engine.interfaces import Recommender, SimilarityStrategy
+from .interfaces import Recommender, SimilarityStrategy
 
 class ContentBasedRecommender(Recommender):
     def __init__(

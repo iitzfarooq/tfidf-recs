@@ -9,8 +9,8 @@ from scipy import sparse
 import numpy as np
 from pathlib import Path
 
-from features.vectorizer import create_vectorizer
-from engine.similarity_strategies import create_similarity_strategy
+from src.features.vectorizer import create_vectorizer
+from src.engine.similarity_strategies import create_similarity_strategy
 
 
 class OrchestrationStep(ABC):

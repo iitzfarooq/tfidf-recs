@@ -7,10 +7,7 @@ import click
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Add project root and src to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / "src"))  # For internal imports
-sys.path.insert(0, str(PROJECT_ROOT))  # For src.* imports
 
 from src.utils.config_loader import ConfigLoader
 from src.utils.artifacts_registry import ArtifactsRegistry
