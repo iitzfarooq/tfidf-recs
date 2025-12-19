@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from utils.load_save import *
 
+
 @dataclass
 class ArtifactMetadata:
     name: str
@@ -12,21 +13,22 @@ class ArtifactMetadata:
     created_at: str
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-@dataclass 
+
+@dataclass
 class ArtifactVersion:
     version_id: str
     timestamp: str
     artifacts: Dict[str, Dict[str, ArtifactMetadata]] = field(default_factory=dict)
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> 'ArtifactVersion':
+    def from_dict(data: Dict[str, Any]) -> "ArtifactVersion":
         artifacts = {
             type: {
                 name: ArtifactMetadata(
-                    name=meta['name'],
-                    path=Path(meta['path']),
-                    created_at=meta['created_at'],
-                    metadata=meta.get('metadata', {})
+                    name=meta["name"],
+                    path=Path(meta["path"]),
+                    created_at=meta["created_at"],
+                    metadata=meta.get("metadata", {}),
                 )
                 for name, meta in type_dict.items()
             }
@@ -35,31 +37,33 @@ class ArtifactVersion:
         return ArtifactVersion(
             version_id=data.get("version_id"),
             timestamp=data.get("timestamp"),
-            artifacts=artifacts
+            artifacts=artifacts,
         )
-    
+
+
 class VersionContext:
-    def __init__(self, registry: 'ArtifactsRegistry', mode: str = 'load'):
+    def __init__(self, registry: "ArtifactsRegistry", mode: str = "load"):
         self.registry = registry
         self.mode = mode
         self.previous_version = registry.active_version
 
     def __enter__(self):
-        if self.mode == 'create':
+        if self.mode == "create":
             self.registry.create_version()
-        elif self.mode == 'load':
+        elif self.mode == "load":
             self.registry.load_latest()
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
         return self.registry
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is None and self.mode == 'create':
+        if exc_type is None and self.mode == "create":
             self.registry.commit()
         else:
             self.registry.active_version = self.previous_version
 
         return False  # Do not suppress exceptions
+
 
 @dataclass
 class ArtifactConfig:
@@ -69,13 +73,14 @@ class ArtifactConfig:
     dependencies: List[str] = field(default_factory=list)
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> 'ArtifactConfig':
+    def from_dict(data: Dict[str, Any]) -> "ArtifactConfig":
         return ArtifactConfig(
             format=data.get("format"),
             compression=data.get("compression"),
             required=data.get("required", True),
-            dependencies=data.get("dependencies", [])
+            dependencies=data.get("dependencies", []),
         )
+
 
 class ArtifactsRegistry:
     """
@@ -88,6 +93,8 @@ class ArtifactsRegistry:
 
     Operations:
     - load_latest()
+    - load_version(version_id)
+    - list_versions()
     - create_version()
     - register_artifact(artifact_type, artifact_name, artifact_data, metadata)
     - get_artifact(artifact_type, artifact_name)
@@ -101,7 +108,7 @@ class ArtifactsRegistry:
         self.base_path = Path(config.get("base_path", "data/artifacts"))
         self.base_version = config.get("base_version", "v1")
         self.artifacts_config = {
-            type: ArtifactConfig.from_dict(cfg) 
+            type: ArtifactConfig.from_dict(cfg)
             for type, cfg in config.get("artifact_types", {}).items()
         }
 
@@ -118,18 +125,16 @@ class ArtifactsRegistry:
         """
 
         candidates = self._find_version_candidates()
-        
+
         if not candidates:
             raise FileNotFoundError("No versions found in the registry.")
-        
+
         latest_version = self._get_latest_version(candidates)
         self.active_version = latest_version
-        
+
         version_data = self._load_version_metadata(latest_version)
-        self.versions[latest_version] = ArtifactVersion.from_dict(
-            version_data
-        )
-    
+        self.versions[latest_version] = ArtifactVersion.from_dict(version_data)
+
     def load_version(self, version_id: str) -> None:
         """
         Load a specific version by its version ID. Raises FileNotFoundError
@@ -138,7 +143,7 @@ class ArtifactsRegistry:
         self.active_version = version_id
         version_data = self._load_version_metadata(version_id)
         self.versions[version_id] = ArtifactVersion.from_dict(version_data)
-    
+
     def list_versions(self) -> List[str]:
         """
         List all available versions in the registry. Returns a sorted list
@@ -146,20 +151,18 @@ class ArtifactsRegistry:
         """
         candidates = self._find_version_candidates()
         return sorted(candidates, reverse=True)
-    
+
     def _find_version_candidates(self) -> list:
-        pattern = re.compile(
-            rf"^{self.base_version}\.(\d{{8}}_\d{{6}})$"
-        )
+        pattern = re.compile(rf"^{self.base_version}\.(\d{{8}}_\d{{6}})$")
         return [
             entry.name
             for entry in self.base_path.iterdir()
             if entry.is_dir() and pattern.match(entry.name)
         ]
-    
+
     def _get_latest_version(self, candidates: list) -> str:
         return max(candidates)
-    
+
     def _load_version_metadata(self, version: str) -> dict:
         version_path = self.base_path / version
         version_file = version_path / "version_metadata.json"
@@ -168,16 +171,13 @@ class ArtifactsRegistry:
                 f"Version metadata file not found for version '{version}'."
             )
         return load_json(version_file)
-        
 
     def create_version(self) -> None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         version_id = f"{self.base_version}.{timestamp}"
-    
+
         self.versions[version_id] = ArtifactVersion(
-            version_id=version_id,
-            timestamp=timestamp,
-            artifacts={}
+            version_id=version_id, timestamp=timestamp, artifacts={}
         )
         self.active_version = version_id
 
@@ -186,65 +186,55 @@ class ArtifactsRegistry:
         artifact_type: str,
         artifact_name: str,
         artifact_data: Any,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> 'ArtifactsRegistry':
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> "ArtifactsRegistry":
         if self.active_version is None:
             raise RuntimeError("No active version set.")
-    
+
         if artifact_type not in self.artifacts_config:
             raise ValueError(f"Unknown artifact type: '{artifact_type}'.")
-    
+
         self._validate_dependencies(artifact_type)
-    
+
         version = self.versions[self.active_version]
-        artifact_path = (
-            self.base_path / self.active_version / artifact_type
-        )
+        artifact_path = self.base_path / self.active_version / artifact_type
         format_cfg = self.artifacts_config[artifact_type]
-    
+
         artifact_file = artifact_path / f"{artifact_name}.{format_cfg.format}"
         artifact_meta = ArtifactMetadata(
             name=artifact_name,
             path=artifact_file,
             created_at=datetime.now().isoformat(),
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
-    
+
         version.artifacts.setdefault(artifact_type, {})[artifact_name] = artifact_meta
-        self.pending_artifacts[
-            (version.version_id, artifact_type, artifact_name)
-        ] = artifact_data
+        self.pending_artifacts[(version.version_id, artifact_type, artifact_name)] = (
+            artifact_data
+        )
 
         return self
 
-    def get_artifact(
-        self, 
-        artifact_type: str,
-        artifact_name: str
-    ) -> Any:
+    def get_artifact(self, artifact_type: str, artifact_name: str) -> Any:
         if self.active_version is None:
             raise RuntimeError("Error: No active version set.")
-    
+
         version = self.versions[self.active_version]
-    
+
         self._check_artifact_exists(version, artifact_type, artifact_name)
         return self._load_artifact_data(
-            version.artifacts[artifact_type][artifact_name],
-            artifact_type
+            version.artifacts[artifact_type][artifact_name], artifact_type
         )
-    
+
     def _check_artifact_exists(
-        self,
-        version: ArtifactVersion,
-        artifact_type: str,
-        artifact_name: str
+        self, version: ArtifactVersion, artifact_type: str, artifact_name: str
     ) -> None:
         if artifact_type not in version.artifacts:
             raise KeyError(
                 f"Artifact type '{artifact_type}' not found in "
                 f"version '{version.version_id}'."
             )
-    
+
         if artifact_name not in version.artifacts[artifact_type]:
             raise KeyError(
                 f"Artifact '{artifact_name}' of type '{artifact_type}' "
@@ -252,29 +242,21 @@ class ArtifactsRegistry:
             )
 
     def _load_artifact_data(
-        self, 
-        artifact_meta: ArtifactMetadata,
-        artifact_type: str
+        self, artifact_meta: ArtifactMetadata, artifact_type: str
     ) -> Any:
         """Load artifact data from file, using cache if available."""
-        art_key = (
-            self.active_version,
-            artifact_type,
-            artifact_meta.name
-        )
-        
+        art_key = (self.active_version, artifact_type, artifact_meta.name)
+
         # Check cache first
         if art_key in self.pending_artifacts:
             return self.pending_artifacts[art_key]
-        
+
         # Load from file
         if not artifact_meta.path.exists():
-            raise FileNotFoundError(
-                f"Artifact file not found: {artifact_meta.path}"
-            )
-        
+            raise FileNotFoundError(f"Artifact file not found: {artifact_meta.path}")
+
         data = self._load_from_file(artifact_meta.path)
-        
+
         # Cache the loaded data in pending_artifacts
         self.pending_artifacts[art_key] = data
         return data
@@ -282,123 +264,115 @@ class ArtifactsRegistry:
     def _load_from_file(self, file_path: Path) -> Any:
         """Load data from file based on format."""
         suffix = file_path.suffix.lower()
-        
-        if suffix == '.json':
+
+        if suffix == ".json":
             return load_json(file_path)
-        
-        elif suffix == '.yaml' or suffix == '.yml':
+
+        elif suffix == ".yaml" or suffix == ".yml":
             return load_yaml(file_path)
-        
-        elif suffix == '.pkl' or suffix == '.pickle':
+
+        elif suffix == ".pkl" or suffix == ".pickle":
             return load_pickle(file_path)
-        
-        elif suffix == '.joblib':
+
+        elif suffix == ".joblib":
             return load_joblib(file_path)
-        
-        elif suffix == '.npz':
+
+        elif suffix == ".npz":
             return load_npz(file_path)
-        
-        elif suffix == '.parquet':
+
+        elif suffix == ".parquet":
             return load_parquet(file_path)
-        
+
         else:
-            raise ValueError(
-                f"Unsupported file format: {suffix}"
-            )
+            raise ValueError(f"Unsupported file format: {suffix}")
 
     def _save_to_file(self, data: Any, file_path: Path) -> None:
         """Save data to file based on format."""
         file_path.parent.mkdir(parents=True, exist_ok=True)
         suffix = file_path.suffix.lower()
-        
-        if suffix == '.json':
+
+        if suffix == ".json":
             save_json(data, file_path)
-        
-        elif suffix == '.yaml' or suffix == '.yml':
+
+        elif suffix == ".yaml" or suffix == ".yml":
             save_yaml(data, file_path)
-        
-        elif suffix == '.pkl' or suffix == '.pickle':
+
+        elif suffix == ".pkl" or suffix == ".pickle":
             save_pickle(data, file_path)
-        
-        elif suffix == '.joblib':
+
+        elif suffix == ".joblib":
             save_joblib(data, file_path)
-        
-        elif suffix == '.npz':
+
+        elif suffix == ".npz":
             save_npz(data, file_path)
-        
-        elif suffix == '.parquet':
+
+        elif suffix == ".parquet":
             save_parquet(data, file_path)
-        
+
         else:
-            raise ValueError(
-                f"Unsupported file format: {suffix}"
-            )
+            raise ValueError(f"Unsupported file format: {suffix}")
 
     def commit(self) -> None:
         if self.active_version is None:
             raise RuntimeError("No active version set.")
-        
+
         if not self.pending_artifacts:
             return
-        
+
         version = self.versions[self.active_version]
-        
+
         self._validate_required_artifacts(version)
-        
+
         # Save each pending artifact
         for key, data in self.pending_artifacts.items():
             version_id, artifact_type, artifact_name = key
-            
+
             if version_id != self.active_version:
-                continue 
-            
+                continue
+
             artifact_meta = version.artifacts[artifact_type][artifact_name]
             self._save_to_file(data, artifact_meta.path)
-        
+
         self._save_version_metadata(version)
-        
+
         # Clear pending artifacts for this version
         self.pending_artifacts = {
-            k: v for k, v in self.pending_artifacts.items()
+            k: v
+            for k, v in self.pending_artifacts.items()
             if k[0] != self.active_version
         }
 
-    def _validate_dependencies(
-        self, 
-        artifact_type: str
-    ) -> None:
+    def _validate_dependencies(self, artifact_type: str) -> None:
         config = self.artifacts_config[artifact_type]
         dependencies = config.dependencies
-        
+
         if not dependencies:
             return
-        
+
         version = self.versions[self.active_version]
         missing_deps = []
-        
+
         for dep_type in dependencies:
-            if dep_type not in version.artifacts or \
-               not version.artifacts[dep_type]:
+            if dep_type not in version.artifacts or not version.artifacts[dep_type]:
                 missing_deps.append(dep_type)
-        
+
         if missing_deps:
             raise ValueError(
                 f"Cannot register '{artifact_type}': missing required "
                 f"dependencies {missing_deps}"
             )
 
-    def _validate_required_artifacts(
-        self, 
-        version: ArtifactVersion
-    ) -> None:
+    def _validate_required_artifacts(self, version: ArtifactVersion) -> None:
         missing_required = []
-        
+
         for artifact_type, config in self.artifacts_config.items():
             if config.required:
-                if artifact_type not in version.artifacts or \
-                   not version.artifacts[artifact_type]:
+                if (
+                    artifact_type not in version.artifacts
+                    or not version.artifacts[artifact_type]
+                ):
                     missing_required.append(artifact_type)
-        
+
         if missing_required:
             raise ValueError(
                 f"Missing required artifacts in version "
@@ -408,9 +382,9 @@ class ArtifactsRegistry:
     def _save_version_metadata(self, version: ArtifactVersion) -> None:
         version_path = self.base_path / version.version_id
         version_path.mkdir(parents=True, exist_ok=True)
-        
+
         metadata_file = version_path / "version_metadata.json"
-        
+
         metadata = {
             "version_id": version.version_id,
             "timestamp": version.timestamp,
@@ -420,18 +394,15 @@ class ArtifactsRegistry:
                         "name": meta.name,
                         "path": str(meta.path),
                         "created_at": meta.created_at,
-                        "metadata": meta.metadata
+                        "metadata": meta.metadata,
                     }
                     for name, meta in artifacts.items()
                 }
                 for artifact_type, artifacts in version.artifacts.items()
-            }
+            },
         }
-        
+
         save_json(metadata, metadata_file)
 
-    def __call__(
-        self, 
-        mode: str = 'load'
-    ) -> VersionContext:
+    def __call__(self, mode: str = "load") -> VersionContext:
         return VersionContext(self, mode)
