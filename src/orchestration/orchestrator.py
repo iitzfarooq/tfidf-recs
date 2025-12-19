@@ -65,7 +65,7 @@ class Orchestrator:
         else:
             raise ValueError(f"Unknown mode: {mode}")
 
-        print(f"✓ Pipeline completed. Version: {version_id}")
+        print(f"✓ Changes committed. Version: {version_id}")
         print("-" * 70)
         return version_id
     
