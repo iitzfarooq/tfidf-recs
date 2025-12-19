@@ -30,15 +30,6 @@ class Orchestrator:
         self.steps = steps
         self.config = config or {}
 
-        # Initialize registry
-        if registry is None:
-            config_loader = ConfigLoader()
-            config_loader.load_all()
-            registry_config = config_loader.get("registry")
-            if not registry_config:
-                raise ValueError("Registry configuration not found")
-            registry = ArtifactsRegistry(registry_config)
-
         self.registry = registry
         self.context: Dict[str, Any] = {}
 
@@ -140,7 +131,9 @@ class Orchestrator:
         return version_id
 
 
-def create_orchestrator(config: Optional[Dict[str, Any]] = None) -> Orchestrator:
+def create_orchestrator(
+    config: Optional[Dict[str, Any]] = None, registry=None
+) -> Orchestrator:
     """
     Factory function to create an orchestrator from configuration.
 
@@ -168,4 +161,4 @@ def create_orchestrator(config: Optional[Dict[str, Any]] = None) -> Orchestrator
     steps.append(GenerateFeaturesStep(step_config.get("features", {})))
     steps.append(GenerateSimilarityStep(step_config.get("similarity", {})))
 
-    return Orchestrator(steps=steps, config=config)
+    return Orchestrator(steps=steps, config=config, registry=registry)
